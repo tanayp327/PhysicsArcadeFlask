@@ -1,32 +1,29 @@
-from flask import Flask, request, Blueprint
+from flask import Flask, jsonify, request, Blueprint, app
 from flask_restful import Resource, Api
 
-rocket_api = Blueprint('rocket_api', __name__,
-                   url_prefix='/api/rocket')
+rocket_api = Blueprint('rocket_api', __name__, 
+                            url_prefix='/api/rocket')
 api = Api(rocket_api)
 
-class RocketLaunch(Resource):
+# Constants
+GRAVITY = 9.8  # Acceleration due to gravity
+
+# Create a resource for handling game requests
+class GameResource(Resource):
     def post(self):
-        velocity = request.json['velocity']
-        result = launch_rocket(velocity)
-        return {'result': result}
-    
-def launch_rocket(velocity):
-    # Constants
-    GRAVITY = 9.8  # Acceleration due to gravity in m/s^2
-    EARTH_RADIUS = 6371000  # Radius of the Earth in meters
-    ORBITAL_VELOCITY = 7800  # Approximate orbital velocity in m/s
-    
-    # Calculate the time of flight and maximum height of the rocket
-    time_of_flight = (2 * velocity * (velocity * (2 * GRAVITY * EARTH_RADIUS) ** 0.5)) / (GRAVITY * (2 * GRAVITY * EARTH_RADIUS) ** 0.5)
-    max_height = (velocity ** 2) / (2 * GRAVITY)
-    
-    # Determine if the rocket reaches orbit
-    if velocity >= ORBITAL_VELOCITY:
-        return 'Rocket successfully reached orbit!'
-    elif max_height > EARTH_RADIUS:
-        return 'Rocket reached a maximum height but failed to reach orbital velocity.'
-    else:
-        return 'Rocket failed to reach orbit.'
-    
-api.add_resource(RocketLaunch, '/rocket')
+        # Get the player's input from the request
+        data = request.get_json()
+
+        # Process the player's input and calculate the rocket's trajectory
+        thrust = data['thrust']
+        drag = data['drag']
+        time = data['time']
+
+        velocity = thrust - drag - GRAVITY * time
+        altitude = 0.5 * (thrust - drag) * time**2 - GRAVITY * time**2
+
+        # Return the result as a JSON response
+        return jsonify(velocity=velocity, altitude=altitude)
+
+# Add the resource to the API
+api.add_resource(GameResource, '/game')
