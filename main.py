@@ -8,26 +8,26 @@ from __init__ import app,db  # Definitions initialization
 from model.jokes import initJokes
 from model.users import initUsers
 from model.players import initPlayers
+from model.films import initFilms
 from model.leaderboard import initLeaderboard
-
 
 # setup APIs
 from api.user import user_api # Blueprint import api definition
-from api.rocket import rocket_api
+from api.exercise import exercise_api
+from api.film import film_api
 from api.leaderboard import leaderboard_api
+from api.rocket import rocket_api
 
 # setup App pages
 from projects.projects import app_projects # Blueprint directory import projects definition
 
-
-# Initialize the SQLAlchemy object to work with the Flask app instance
-db.init_app(app)
-
 # register URIs
 app.register_blueprint(user_api) # register api routes
-app.register_blueprint(rocket_api)
-app.register_blueprint(leaderboard_api)
 app.register_blueprint(app_projects) # register app pages
+app.register_blueprint(exercise_api)
+app.register_blueprint(film_api)
+app.register_blueprint(leaderboard_api)
+app.register_blueprint(rocket_api)
 
 @app.errorhandler(404)  # catch for URL not found
 def page_not_found(e):
@@ -38,17 +38,18 @@ def page_not_found(e):
 def index():
     return render_template("index.html")
 
-@app.route('/table/')  # connects /stub/ URL to stub() function
-def table():
-    return render_template("table.html")
+@app.route('/stub/')  # connects /stub/ URL to stub() function
+def stub():
+    return render_template("stub.html")
 
 @app.before_first_request
 def activate_job():  # activate these items 
+    db.init_app(app)
     initJokes()
     initUsers()
     initPlayers()
+    initFilms()
     initLeaderboard()
-
 # this runs the application on the development server
 if __name__ == "__main__":
     # change name for testing
